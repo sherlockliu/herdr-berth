@@ -60,6 +60,11 @@ A 660×640 floating window on the theme's `popover`, 14px padding, one column:
   that port, toasts `Stopped :PORT`, and rescans after 700ms. Re-rendering (the 5s poll)
   disarms it.
 - **`r`** rescans; **`Esc`** closes the window when it floats.
+- **Focus on open**: a `kind: "window"` overlay does not take the keyboard when it
+  appears, so `track_focus(handle)` alone is not enough — `Esc` goes to whatever had focus
+  behind it and the panel looks broken. `init` calls `this.handle.focus()` and again after
+  400ms (the window may not be shown yet), and the root's `on_mouse_down("left")` refocuses
+  after a click on a row or a control.
 - Empty file: `Nothing of yours is listening…` (Mine) / `Nothing is listening on TCP.`
   (All). A failed probe draws `probe failed: …` in `ansi1` instead of an empty list.
 
@@ -96,6 +101,9 @@ A 660×640 floating window on the theme's `popover`, 14px padding, one column:
   root-level block with `{"mod":"ports"}` when the mod folder appeared *before* its
   `mod.json` existed. Write `mod.json` first, or check the layout afterwards and remove
   any stray block.
+- **A window overlay starts unfocused.** Keyboard handlers (`Esc`, `a`, `r`) are dead
+  until the mod calls `handle.focus()`, and a click that lands on a child control can move
+  focus off the root — give the root a mouse-down refocus.
 - **Saving a file closes the floating copy.** The reload is not in-place for a window
   overlay; reopen with the key.
 - `lsof` costs ~0.6–0.8s per run on a busy Mac. With a 5s poll that is a visible blip;

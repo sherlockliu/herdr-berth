@@ -61,13 +61,22 @@ Removing the folder removes the mod; remove the key line too.
 | Click | open the URL in your browser |
 | Right-click | copy `http://localhost:PORT` |
 | `×` twice | stop every process holding that port (`TERM`), then rescan |
-| `a` | Mine (dev servers + containers) / All (plus macOS daemons) |
-| `r` / `Esc` | rescan / close |
 | **Drift** | a service your repo declares but nothing is listening on shows as a `down` row with its port, its command and where it came from |
 | **Start** | that row's `Start` button runs the project's own command (`pnpm run dev`, `make api`, `docker compose up -d db`) in a new Herdr tab, in its space |
 | **Uptime** | `up 24m` on every row, from `ps` elapsed time |
 | **Expected** | rows that satisfy a declaration get a check mark; a declared port held by someone else is marked amber |
 | **Daemon names** | `:5000`/`:7000` read "AirPlay Receiver", not `ControlCenter` |
+
+### Keys
+
+| Key | Does |
+| --- | --- |
+| `cmd-shift-o` (`ctrl-shift-o`) | open the panel; again, or **`Esc`**, closes it |
+| `Esc` | close the window. It focuses itself when it opens, so this works straight away — a click inside takes focus back if it ever goes behind |
+| `a` | toggle **Mine** (dev servers + containers) / **All** (plus macOS daemons) |
+| `r` | rescan now (it also polls every 5s) |
+| click · right-click | open the URL · copy `http://localhost:PORT` |
+| `×` twice | stop every process holding that port, then rescan |
 
 ## What counts as declared
 

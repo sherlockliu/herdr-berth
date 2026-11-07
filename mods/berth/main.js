@@ -94,6 +94,10 @@ export default class Berth extends View {
     this.starting = {}; // service name -> true while its tab starts
     this.isDemo = false; // rendering fixtures/demo.json instead of the machine
     this.handle = cx.focus_handle();
+    // A window overlay does not take the keyboard when it opens, so without
+    // these the first Esc goes to whatever had focus behind it.
+    this.handle.focus();
+    cx.timer.after(400, () => this.handle.focus());
     this.refresh(cx);
     cx.timer.every(5000, (cx) => this.refresh(cx));
   }
@@ -459,6 +463,7 @@ export default class Berth extends View {
     return v_flex()
       .id("berth")
       .track_focus(this.handle)
+      .on_mouse_down("left", () => this.handle.focus())
       .on_key_down((e, cx) => {
         if (e.key === "escape" && props()?.overlay) closeOverlay(props().overlay);
         else if (e.key === "r") this.refresh(cx);
