@@ -6,6 +6,10 @@ list, what your projects said should be running but isn't.
 
 ![Berth](preview.png)
 
+**Open it with `cmd-shift-o`** — or `herdr-app do mod.open '{"name":"berth"}'` from any
+shell. Herdr maps the `cmd-` prefix to ctrl away from macOS, so the same chord works as
+`ctrl-shift-o` on Linux and Windows.
+
 ```
 Berth   7 listening · 2 missing            [Mine 7] [All 11]  demo  ⟳  ×
 
@@ -48,6 +52,7 @@ Removing the folder removes the mod; remove the key line too.
 
 | | |
 | --- | --- |
+| Open / close | `cmd-shift-o`, or `mod.open berth` from the CLI |
 | Every listener | port, bind address, process, pid(s), working directory, full command line |
 | Grouped | by your Herdr space (longest matching folder), then `Docker`, then the Mac's own daemons |
 | Named | the page title for HTTP servers, the project folder, or the container name — not just `python3.11` |
@@ -90,12 +95,22 @@ by a process outside the repo is flagged, not counted.
   title). No telemetry, no remote calls, nothing sent anywhere.
 - Writes: nothing outside `~/.config/herdr-app`.
 
-## Requirements
+## Requirements and platforms
 
-- Herdr desktop app.
-- `python3` (present on macOS and most Linux installs).
-- `lsof` (macOS, most Linux). Docker is optional — without it the Docker group is just
-  absent. Linux `ss` fallback and Windows support are on the roadmap.
+Herdr desktop app, and `python3` on `PATH`. Docker is optional — without it the `Docker`
+group is simply absent.
+
+| | Ports come from | Working directory (grouping, drift match) | Browser / copy / stop / start |
+| --- | --- | --- | --- |
+| **macOS** (tested) | `lsof` | `lsof -d cwd` | `open` · `pbcopy` · `kill -TERM` · `/bin/zsh -lc` |
+| **Linux** | `ss -ltnp`, `lsof` as a fallback | `/proc/<pid>/cwd` | `xdg-open` · `wl-copy`/`xclip` · `kill -TERM` · `/bin/sh -lc` |
+| **Windows** | `netstat -ano` + `tasklist` | **not available** — no command line either | `cmd /c start` · `clip` · `taskkill /T /F` · `powershell -Command` |
+
+Windows therefore lists ports, processes and containers, but rows group by process name
+instead of project, and a declaration can only be matched by port number, not by repo.
+That path is written but untested — `python3 mods/berth/probe.py --selftest` checks the
+`ss`/`netstat`/`lsof` parsers on all three, and issues with a real Windows box are
+welcome.
 
 ## Preview data (how `preview.png` was made)
 

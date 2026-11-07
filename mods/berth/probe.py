@@ -23,9 +23,11 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import threading
 import time
 
+OS = "windows" if sys.platform.startswith("win") else "macos" if sys.platform == "darwin" else "linux"
 HOME = os.path.expanduser("~")
 ENV = dict(os.environ)
 ENV["PATH"] = ":".join(
@@ -64,9 +66,8 @@ def read(path):
 # ---------------------------------------------------------------- listeners
 
 
-def listening():
-    """[(pid, proc, addr, port)] from lsof's field output."""
-    out = run(["/usr/sbin/lsof", "-nP", "-iTCP", "-sTCP:LISTEN", "-F", "pcn"])
+def parse_lsof(out):
+    """[(pid, proc, addr, port)] from lsof -F pcn."""
     rows, pid, proc = [], None, ""
     for line in out.splitlines():
         if not line:
@@ -83,9 +84,76 @@ def listening():
     return rows
 
 
+def parse_ss(out):
+    """[(pid, proc, addr, port)] from `ss -ltnpH` (Linux)."""
+    rows = []
+    for line in out.splitlines():
+        # LISTEN 0 511 127.0.0.1:3000 0.0.0.0:* users:(("node",pid=39176,fd=21))
+        m = re.search(r"\s(\S+):(\d+)\s+\S+\s+", line)
+        if not m:
+            continue
+        addr = m.group(1)
+        port = int(m.group(2))
+        users = re.findall(r'\("([^"]+)",pid=(\d+)', line)
+        if users:
+            for proc, pid in users:
+                rows.append((int(pid), proc, addr, port))
+        else:
+            rows.append((0, "", addr, port))
+    return rows
+
+
+def parse_netstat(out):
+    """[(pid, proc, addr, port)] from `netstat -ano -p tcp` (Windows); proc comes later."""
+    rows = []
+    for line in out.splitlines():
+        parts = line.split()
+        if len(parts) < 5 or parts[0].upper() != "TCP" or parts[3].upper() != "LISTENING":
+            continue
+        local = parts[1]
+        m = re.match(r"^(.*):(\d+)$", local)
+        if not m:
+            continue
+        try:
+            rows.append((int(parts[4]), "", m.group(1) or "*", int(m.group(2))))
+        except ValueError:
+            continue
+    return rows
+
+
+def windows_names():
+    """pid -> image name, from one tasklist call."""
+    if OS != "windows":
+        return {}
+    names = {}
+    for line in run(["tasklist", "/FO", "CSV", "/NH"]).splitlines():
+        cells = [c.strip('"') for c in line.split('","')]
+        if len(cells) >= 2 and cells[1].isdigit():
+            names[int(cells[1])] = cells[0]
+    return names
+
+
+def listening():
+    """[(pid, proc, addr, port)] on whichever platform this is."""
+    if OS == "macos":
+        return parse_lsof(run(["/usr/sbin/lsof", "-nP", "-iTCP", "-sTCP:LISTEN", "-F", "pcn"]))
+    if OS == "linux":
+        rows = parse_ss(run(["ss", "-ltnpH"]))
+        return rows if rows else parse_lsof(run(["lsof", "-nP", "-iTCP", "-sTCP=LISTEN", "-F", "pcn"]))
+    names = windows_names()
+    rows = parse_netstat(run(["netstat", "-ano", "-p", "tcp"]))
+    return [(pid, names.get(pid, ""), addr, port) for pid, _proc, addr, port in rows]
+
+
 def commands(pids):
-    """pid -> (full command line, elapsed time)."""
+    """pid -> (full command line, elapsed time). Windows has no cheap equivalent."""
     found = {}
+    if OS == "windows":
+        # tasklist gives the image name only; no command line, no elapsed time.
+        for pid, name in windows_names().items():
+            if pid in set(pids):
+                found[pid] = (name, "")
+        return found
     pids = [str(p) for p in pids]
     for i in range(0, len(pids), 120):
         out = run(["ps", "-o", "pid=,etime=,command=", "-p", ",".join(pids[i:i + 120])])
@@ -99,6 +167,16 @@ def commands(pids):
 def cwds(pids):
     """pid -> working directory (what tells a dev server from a daemon)."""
     found = {}
+    if OS == "windows":
+        return found
+    if OS == "linux":
+        for pid in pids:
+            try:
+                found[int(pid)] = os.readlink(f"/proc/{pid}/cwd")
+            except Exception:
+                pass
+        if found:
+            return found
     pids = [str(p) for p in pids]
     for i in range(0, len(pids), 120):
         out = run(["/usr/sbin/lsof", "-nP", "-a", "-p", ",".join(pids[i:i + 120]), "-d", "cwd", "-F", "pn"])
@@ -369,7 +447,7 @@ def scan_folders(bases):
 
 def main(argv):
     folders = [argv[i + 1] for i, a in enumerate(argv) if a == "--folder" and i + 1 < len(argv)]
-    doc = {"at": int(time.time()), "listeners": [], "containers": [], "expected": [], "folders": [], "error": None}
+    doc = {"at": int(time.time()), "os": OS, "listeners": [], "containers": [], "expected": [], "folders": [], "error": None}
     try:
         rows = listening()
         dockers, by_port = containers()
@@ -427,7 +505,31 @@ def main(argv):
     print(json.dumps(doc))
 
 
-if __name__ == "__main__":
-    import sys
+def selftest():
+    """Parsers on captured output from each platform: python3 probe.py --selftest."""
+    ss = (
+        "LISTEN 0 511 127.0.0.1:3000 0.0.0.0:* users:((\"node\",pid=39176,fd=21))\n"
+        "LISTEN 0 4096 [::]:5432 [::]:* users:((\"postgres\",pid=812,fd=7),(\"postgres\",pid=813,fd=7))\n"
+        "LISTEN 0 128 0.0.0.0:22 0.0.0.0:* users:((\"sshd\",pid=101,fd=3))\n"
+    )
+    netstat = (
+        "  TCP    0.0.0.0:3000           0.0.0.0:0              LISTENING       41221\n"
+        "  TCP    127.0.0.1:5432         0.0.0.0:0              LISTENING       812\n"
+        "  TCP    0.0.0.0:5353           0.0.0.0:0              ESTABLISHED     990\n"
+    )
+    lsof = "p39176\ncnode\nn127.0.0.1:3000\np812\ncmongod\nn*:27017\n"
+    checks = [
+        (parse_ss(ss), [(39176, "node", "127.0.0.1", 3000), (812, "postgres", "[::]", 5432),
+                        (813, "postgres", "[::]", 5432), (101, "sshd", "0.0.0.0", 22)]),
+        (parse_netstat(netstat), [(41221, "", "0.0.0.0", 3000), (812, "", "127.0.0.1", 5432)]),
+        (parse_lsof(lsof), [(39176, "node", "127.0.0.1", 3000), (812, "mongod", "*", 27017)]),
+    ]
+    for got, want in checks:
+        print("ok  " if got == want else f"FAIL got={got} want={want}", len(got), "rows")
 
-    main(sys.argv[1:])
+
+if __name__ == "__main__":
+    if "--selftest" in sys.argv[1:]:
+        selftest()
+    else:
+        main(sys.argv[1:])

@@ -113,6 +113,14 @@ A 660×640 floating window on the theme's `popover`, 14px padding, one column:
   `/usr/local/bin`, `~/.local/bin` before calling it, and hide the section when absent.
 - The status pill is a single sample, not health: a 200 at `/` says nothing about
   `/healthz`.
+- **Three platforms, three dialects.** `lsof` (macOS), `ss -ltnp` + `/proc/<pid>/cwd`
+  (Linux), `netstat -ano -p tcp` + `tasklist` (Windows). The document carries `os` and the
+  mod switches `open` (`open`/`xdg-open`/`cmd /c start`), clipboard (`pbcopy`/`wl-copy`+
+  `xclip`/`clip`), kill (`kill -TERM`/`taskkill /T /F`) and the start shell
+  (`/bin/zsh -lc`, `/bin/sh -lc`, `powershell -Command`) on it. Windows has no working
+  directory and no elapsed time, so `cwd` and `uptime` are empty there — the probe must
+  degrade to process names instead of failing, and `kind` must not assume a cwd.
+  `python3 mods/berth/probe.py --selftest` proves the three parsers from captured output.
 - **Herdr spaces are usually a parent folder of several repos**, not one repo. Scanning
   only the space folder finds nothing; scan its children too (`expand()`), and dedupe by
   path or two spaces sharing a folder double every row.

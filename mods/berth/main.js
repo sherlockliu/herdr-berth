@@ -9,6 +9,9 @@ import { v_flex, h_flex } from "gpui-base";
 import { appHome, closeOverlay, exec, home, notify, props, readTextFile, run, spaces, theme } from "herdr";
 
 const MONO = "Menlo";
+// probe.py reports the platform, because opening a browser, killing a pid and
+// starting a tab all speak a different dialect on each one.
+let PLATFORM = "macos";
 const ICON = (n) => `icons/${n}.svg`;
 const CHROME = (n) => `mods/workspace-chrome/${n}.svg`;
 const OWN = (n) => `mods/berth/${n}.svg`;
@@ -130,6 +133,7 @@ export default class Berth extends View {
         if (r.code !== 0 && !r.stdout.trim()) throw new Error((r.stderr || "probe failed").trim());
         const doc = JSON.parse(r.stdout);
         if (doc.error) throw new Error(doc.error);
+        PLATFORM = doc.os ?? "macos";
         this.data = doc;
         this.error = null;
       } catch (e) {
@@ -225,7 +229,9 @@ export default class Berth extends View {
   start(e, cx) {
     if (this.isDemo || !e.run || this.starting[e.name]) return;
     this.starting[e.name] = true;
-    const args = { name: e.name, folder: e.folder, argv: ["/bin/zsh", "-lc", e.run] };
+    const shell =
+      PLATFORM === "windows" ? ["powershell", "-NoProfile", "-Command", e.run] : [PLATFORM === "linux" ? "/bin/sh" : "/bin/zsh", "-lc", e.run];
+    const args = { name: e.name, folder: e.folder, argv: shell };
     if (e.space?.id) args.space = e.space.id;
     run("tab.new", args);
     this.note = `Started ${e.name} (:${e.port}) — ${e.run}`;
@@ -238,12 +244,18 @@ export default class Berth extends View {
 
   act(e, what, cx) {
     if (what === "open") {
-      exec("open", [`http://localhost:${e.port}/`]).catch(() => {});
+      const url = `http://localhost:${e.port}/`;
+      const opener = PLATFORM === "windows" ? ["cmd", ["/c", "start", "", url]] : PLATFORM === "linux" ? ["xdg-open", [url]] : ["open", [url]];
+      exec(opener[0], opener[1]).catch(() => {});
       return;
     }
     if (what === "copy") {
       const url = `http://localhost:${e.port}`;
-      exec("sh", ["-c", `printf %s ${shq(url)} | pbcopy`])
+      const cmd =
+        PLATFORM === "windows"
+          ? ["cmd", ["/c", `echo ${url}| clip`]]
+          : ["sh", ["-c", `printf %s ${shq(url)} | ${PLATFORM === "linux" ? "wl-copy 2>/dev/null || xclip -selection clipboard" : "pbcopy"}`]];
+      exec(cmd[0], cmd[1])
         .then(() => notify({ title: "Copied", body: url, level: "info", timeout: 1500 }))
         .catch(() => {});
       return;
@@ -257,7 +269,10 @@ export default class Berth extends View {
       this.armed = null;
       cx.notify();
       cx.spawn(async (cx) => {
-        for (const pid of e.pids ?? [e.pid]) await exec("kill", ["-TERM", String(pid)]).catch(() => {});
+        for (const pid of e.pids ?? [e.pid]) {
+          const kill = PLATFORM === "windows" ? ["taskkill", ["/PID", String(pid), "/T", "/F"]] : ["kill", ["-TERM", String(pid)]];
+          await exec(kill[0], kill[1]).catch(() => {});
+        }
         this.note = `Sent stop to ${e.proc}${e.container ? ` (${e.container})` : ""} on :${e.port}`;
         notify({ title: `Stopped :${e.port}`, body: this.note, level: "info", timeout: 2000 });
         cx.timer.after(700, (cx) => this.refresh(cx));
