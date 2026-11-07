@@ -62,7 +62,7 @@ Three claims no other mod can make:
    is a row you can see and start, not an absence you have to notice.
 2. **Uptime and memory.** "up 2h 14m" · "died 4m ago after 3h" · a crash notification
    with a restart action. A port list is a photograph; Berth is a record.
-3. **Conflicts explained.** "expected by `salmon-api`, held by ControlCenter (AirPlay
+3. **Conflicts explained.** "expected by `acme-store`, held by ControlCenter (AirPlay
    Receiver)" beats `EADDRINUSE`.
 
 ## 5. Feature map
@@ -73,7 +73,7 @@ Three claims no other mod can make:
 | --- | --- | --- |
 | 1 | Every TCP listener: port, process, pid(s), working dir, full command | shipped |
 | 2 | Grouped by herdr space → Docker → macOS daemons; "Mine / All" filter (`a`) | shipped |
-| 3 | HTTP status pill per port (200/404/302/`tcp`), page `<title>` as the row name | shipped |
+| 3 | HTTP status pill per port (200/404/302/`tcp`), the page title as the row name | shipped |
 | 4 | Docker containers named per published port; unpublished containers listed in the footer | shipped |
 | 5 | Click a row → opens the URL; right-click → copies it (`pbcopy`) | shipped |
 | 6 | Stop a process holding a port, two-click confirm, TERM to every pid on the port | shipped |
@@ -165,8 +165,8 @@ terminal):
   "listeners": [{
     "port": 3000, "addr": "*", "pid": 39176, "pids": [39176],
     "proc": "node", "cmd": "node .../craco/dist/scripts/start.js",
-    "cwd": "/Users/me/src/salmon-web", "kind": "dev|docker|app",
-    "container": null, "http": 200, "title": "SME.works — ..."
+    "cwd": "/Users/me/src/acme-store", "kind": "dev|docker|app",
+    "container": null, "http": 200, "title": "Acme Store — Checkout"
   }],
   "containers": [{"name": "supabase_db_x", "status": "Up 2 hours", "ports": "0.0.0.0:54322->5432/tcp"}],
   "error": null

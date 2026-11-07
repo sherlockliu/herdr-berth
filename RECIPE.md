@@ -24,7 +24,7 @@ A 660×640 floating window on the theme's `popover`, 14px padding, one column:
    - **Row**, 44px tall, 8px side padding, 9px gap, 8px radius, `hover` background:
      a 16px icon (the project's stack: vite/next/django/fastapi/python/node/bun/docker/
      supabase/psql/mongosh, `program.svg` for daemons), then a two-line block —
-     **line 1** 12.5px medium `foreground`: the page `<title>` when the port answers
+     **line 1** 12.5px medium `foreground`: the page's own title when the port answers
      2xx/3xx, else the project folder name, else the container name, else the space
      name, else the process (`muted` for daemons); **line 2** 11px mono `dim`:
      `localhost:PORT · process-or-container · script.js`;
@@ -79,7 +79,7 @@ A 660×640 floating window on the theme's `popover`, 14px padding, one column:
   for listeners, `ps -o pid=,command=` for command lines, `lsof -a -p … -d cwd -Fn` for
   working directories, `docker ps --format '{{.Names}}\t{{.Status}}\t{{.Ports}}'` for
   names, threads with a 0.45s cap for the HTTP probe (`GET /`, reads 8KB, pulls
-  `<title>`). Classifies `kind`: docker (docker proxy or container mapping), dev (working
+  its title element). Classifies `kind`: docker (docker proxy or container mapping), dev (working
   directory under `$HOME`, not under `.vscode/.cursor/Library`), app (everything else).
 - `mods/berth/mod.json` — `{"place":"none","title":"Berth","focusable":true,
   "overlay":{"kind":"window","width":660,"height":640}}`. `place: none` on purpose: it
@@ -105,7 +105,7 @@ A 660×640 floating window on the theme's `popover`, 14px padding, one column:
 - One port can have several pids (`SO_REUSEPORT`) and a Docker proxy can sit in front of
   a container: collapse by port, keep every pid, prefer the row that has a working
   directory.
-- A `<title>` from a 404/500 page ("Error") is not the app's name — only trust titles
+- A page title from a 404/500 page ("Error") is not the app's name — only trust titles
   under 400.
 - Spaces are matched by folder prefix; a space rooted at `$HOME` matches every listener.
   Skip those, and skip `machine` spaces (a remote folder is not on this disk).

@@ -7,21 +7,24 @@ list, what your projects said should be running but isn't.
 ![Berth](preview.png)
 
 ```
-Berth   10 listening                        [Mine 10] [All 20]  ⟳  ×
+Berth   7 listening · 2 missing            [Mine 7] [All 11]  demo  ⟳  ×
 
-agents  ·  1
-  🐍 Hermes Agent - Dashboard                     200  ↗  ×
-     localhost:50064 · python3.14
-services  ·  3
-  ⚡ SME.works — AI Agents for SME Succession…    200  ↗  ×
-     localhost:3000 · node · start.js
-  ⚡ sai-backend-services-001                      200  ↗  ×
-     localhost:8000 · python3.11
-Docker  ·  6
-  ⚡ supabase_kong_recipeAI                        404  ↗  ×
-     localhost:54321 · supabase_kong_recipeAI
-  ⚡ supabase_db_recipeAI                          tcp  ×
-     localhost:54322 · supabase_db_recipeAI
+acme-store  ·  2
+  ⚡ Acme Store — Checkout                       200  ↗  ×
+     localhost:3000 · node · start.js · up 2d 4h
+  ▶ search                                       down     [ Start ]
+     expected :9200 · acme-store · docker compose up -d search · docker-compose.yml
+atlas-dashboard  ·  1
+  ⚡ Atlas — Feature flags                        200  ↗  ×
+     localhost:5173 · node · vite.js · up 43m
+ledger-api  ·  2
+  ⚡ ledger-api                                  200  ↗  ×
+     localhost:8000 · python3.11 · app.py · up 3h 12m
+  ▶ worker                                       down     [ Start ]
+     expected :8010 · ledger-api · pnpm run worker · package.json
+Docker  ·  4
+  ⚡ acme_kong                                   404  ↗  ×
+     localhost:54321 · acme_kong · up 5d 22h
 ```
 
 ## Install
@@ -47,7 +50,7 @@ Removing the folder removes the mod; remove the key line too.
 | --- | --- |
 | Every listener | port, bind address, process, pid(s), working directory, full command line |
 | Grouped | by your Herdr space (longest matching folder), then `Docker`, then the Mac's own daemons |
-| Named | the page `<title>` for HTTP servers, the project folder, or the container name — not just `python3.11` |
+| Named | the page title for HTTP servers, the project folder, or the container name — not just `python3.11` |
 | Status | HTTP code pill (`200`, `404`, `302`) or `tcp` for Mongo/Postgres/Redis |
 | Docker | containers mapped to their published ports by name; containers with **no published port** counted in the footer, so you stop hunting for them |
 | Click | open the URL in your browser |
