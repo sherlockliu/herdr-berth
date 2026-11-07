@@ -80,7 +80,7 @@ Three claims no other mod can make:
 | 7 | Rescan every 5s, `r` to force, `Esc` to close, JSON from a standalone `probe.py` | shipped |
 | 8 | Zero network beyond `127.0.0.1`; nothing written outside the mod folder | shipped |
 
-### v0.2 — the differentiator (next, ~1–2 sessions)
+### v0.2 — shipped in this repo (items 9, 10, 11, 14)
 
 | # | Feature | Effort | Why |
 | --- | --- | --- | --- |
@@ -97,6 +97,7 @@ Three claims no other mod can make:
 
 | # | Feature | Effort | Why |
 | --- | --- | --- | --- |
+| 13b | **Search box** + `j/k` selection; `⏎` opens the selected row | S | Still open: 15 rows fit, 40 don't |
 | 17 | **Remote spaces**: `exec(..., {on: space.machine})` so a VPS's ports appear in the same list, with the `ssh -L` command generated for you | M | Herdr users run agents on a VPS; Port Manager has tunnels, none has one list |
 | 18 | **Docker depth**: compose project grouping, health state, uptime, "Logs in a pane", restart | M | Containers are half the answer at your setup |
 | 19 | **Focus the terminal that holds it** (⌘-click): PID → cwd → pane via `hc ls`, `pane.focus` | M | Half the time you want the logs, not the page |

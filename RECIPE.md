@@ -42,6 +42,17 @@ A 660×640 floating window on the theme's `popover`, 14px padding, one column:
   Docker listeners group by `Docker`; anything else by `macOS apps and daemons`.
 - Sorted by group then port: dev groups first, `Docker` next, daemons last.
 - **Filter** `Mine` (default) hides `kind: app`; `All` shows everything; `a` toggles.
+- **Drift rows.** `probe.py` also returns `expected` (declared services). For each one
+  the panel finds a listener on the same port: found → that row gets an 11px
+  `workspace-chrome/check.svg`, green when the holder's `cwd` is inside the declaring
+  repo, amber when it is not. Not found → a synthetic `kind: "missing"` row in the same
+  group: `play.svg` in `ansi3`, the service name in `muted`, and a second line
+  `expected :PORT · repo · run command · source file`, a `down` pill (or `starting`
+  in `working` while it launches), and a 22px `Start` button (`raised`, 1px `input`
+  border). The header gains `· N missing` in `ansi3` when any exist.
+- **Start** runs `tab.new` with `{name: service, folder: repo, argv: ["/bin/zsh","-lc",
+  command], space: that space's id}` — the project's own command, in a new tab of its
+  space — then rescans after 3s. A declaration without a `run` command gets no button.
 - **Click a row** whose HTTP code is < 400 → `open http://localhost:PORT/`. Rows without
   HTTP are not clickable (no pointer cursor). **Right-click** any row →
   `printf %s <url> | pbcopy` and a 1.5s toast "Copied".
@@ -58,7 +69,13 @@ A 660×640 floating window on the theme's `popover`, 14px padding, one column:
   list, footer. Uses `herdr`: `exec`, `appHome`, `home`, `spaces`, `theme`, `props`,
   `closeOverlay`, `notify`; `gpui-kit`/`gpui-base` builders only (`v_flex`, `h_flex`,
   `div`, `svg`, `hover`, `on_click`, `on_mouse_down("right", …)`); no `gpui-shell` APIs.
-- `mods/muster/probe.py` — the data, standalone. `lsof -nP -iTCP -sTCP:LISTEN -F pcn`
+- `mods/muster/probe.py` — the data, standalone. Also reads declarations, per entry in
+  `--folder` plus that folder's immediate children that hold a marker
+  (`package.json`, `.muster.json`, compose, `Procfile`, `Makefile`, `pyproject.toml`,
+  `go.mod`, …), max 40: `.muster.json` first, else `package.json` script + `.env*` port
+  + framework default, else `Procfile`, else `Makefile`, plus every compose service's
+  published port. Entries: `{name, port, run, folder, source, health}`.
+   `lsof -nP -iTCP -sTCP:LISTEN -F pcn`
   for listeners, `ps -o pid=,command=` for command lines, `lsof -a -p … -d cwd -Fn` for
   working directories, `docker ps --format '{{.Names}}\t{{.Status}}\t{{.Ports}}'` for
   names, threads with a 0.45s cap for the HTTP probe (`GET /`, reads 8KB, pulls
@@ -96,6 +113,16 @@ A 660×640 floating window on the theme's `popover`, 14px padding, one column:
   `/usr/local/bin`, `~/.local/bin` before calling it, and hide the section when absent.
 - The status pill is a single sample, not health: a 200 at `/` says nothing about
   `/healthz`.
+- **Herdr spaces are usually a parent folder of several repos**, not one repo. Scanning
+  only the space folder finds nothing; scan its children too (`expand()`), and dedupe by
+  path or two spaces sharing a folder double every row.
+- Reading repo folders goes through the app's own TCC grant: if the app cannot read
+  `~/Documents`, `expected` comes back empty and the panel silently looks only like a
+  port list. Check with `hc exec -- ls <repo>` before blaming the parser.
+- `package.json` and `docker-compose.yml` in one repo are both true: the app is declared
+  by one, the infra by the other. Do not make compose an `else` branch.
+- A declared port is not a declared *service*: match by port, then verify the holder's
+  cwd is inside the repo, or a project on 3000 claims another project's 3000.
 
 ## Done when
 
@@ -107,3 +134,9 @@ A 660×640 floating window on the theme's `popover`, 14px padding, one column:
 - `python3 mods/muster/probe.py` prints valid JSON with `"error": null`, and with every
   server stopped still prints `{"listeners": [], …}`.
 - Starting `python3 -m http.server 8123` makes a row appear within 5s with a `200` pill.
+- `python3 mods/muster/probe.py --folder fixtures` returns four `expected` entries
+  (`api` 8123 from `.muster.json`, `demo-web` 8125 from `package.json` + `.env`, `mail`
+  8126 and `pg` 8127 from compose) and scans three folders.
+- `herdr-app do tab.new '{"name":"x","folder":"<repo>","argv":["/bin/zsh","-lc","python3 -m http.server 8123"]}'`
+  makes a listener appear, proving the Start path's command, and closing that tab frees
+  the port.
