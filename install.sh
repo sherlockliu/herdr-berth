@@ -1,19 +1,19 @@
 #!/bin/sh
-# Install Muster into the Herdr app and merge its key binding.
+# Install Berth into the Herdr app and merge its key binding.
 #   ./install.sh
 # Removes the previous copy of the mod, keeps a backup of keys.json.
 set -eu
 
 SRC=$(cd "$(dirname "$0")" && pwd)
 HOME_DIR=${HERDR_APP_HOME:-"$HOME/.config/herdr-app"}
-DEST="$HOME_DIR/mods/muster"
+DEST="$HOME_DIR/mods/berth"
 CLI=$(command -v herdr-app || echo "$HOME/.local/bin/herdr-app")
 
 [ -d "$HOME_DIR" ] || { echo "Herdr app home not found: $HOME_DIR" >&2; exit 1; }
 
 mkdir -p "$HOME_DIR/mods"
 rm -rf "$DEST"
-cp -R "$SRC/mods/muster" "$DEST"
+cp -R "$SRC/mods/berth" "$DEST"
 echo "copied -> $DEST"
 
 python3 - "$SRC/keys.json" "$HOME_DIR/keys.json" <<'PY'
@@ -24,13 +24,13 @@ try:
 except FileNotFoundError:
     have = {}
 want = json.load(open(src))
-shutil.copyfile(dest, dest + ".bak-muster") if have else None
+shutil.copyfile(dest, dest + ".bak-berth") if have else None
 for section, keys in want.items():
     have.setdefault(section, {})
     for chord, action in keys.items():
         old = have[section].get(chord)
         if old and old != action:
-            print(f"kept {chord}: {old} (wanted {action}) — bind it yourself if you prefer Muster")
+            print(f"kept {chord}: {old} (wanted {action}) — bind it yourself if you prefer Berth")
         elif not old:
             have[section][chord] = action
             print(f"bound {chord} -> {action}")
@@ -39,4 +39,4 @@ PY
 
 "$CLI" check "$DEST"
 echo
-echo "Open it with cmd-shift-o, or: $CLI do mod.open '{\"name\":\"muster\"}'"
+echo "Open it with cmd-shift-o, or: $CLI do mod.open '{\"name\":\"berth\"}'"

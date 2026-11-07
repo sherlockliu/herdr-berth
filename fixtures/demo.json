@@ -1,0 +1,299 @@
+{
+  "at": 1794100000,
+  "spaces": [
+    {
+      "id": "demo-acme",
+      "name": "acme-store",
+      "folder": "/Users/demo/src/acme-store",
+      "machine": null
+    },
+    {
+      "id": "demo-atlas",
+      "name": "atlas-dashboard",
+      "folder": "/Users/demo/src/atlas-dashboard",
+      "machine": null
+    },
+    {
+      "id": "demo-ledger",
+      "name": "ledger-api",
+      "folder": "/Users/demo/src/ledger-api",
+      "machine": null
+    }
+  ],
+  "listeners": [
+    {
+      "port": 3000,
+      "addr": "*",
+      "pid": 41221,
+      "pids": [
+        41221
+      ],
+      "proc": "node",
+      "cmd": "node /Users/demo/src/acme-store/node_modules/@craco/craco/dist/scripts/start.js",
+      "cwd": "/Users/demo/src/acme-store",
+      "kind": "dev",
+      "container": null,
+      "http": 200,
+      "title": "Acme Store \u2014 Checkout",
+      "uptime": "2-04:11:20"
+    },
+    {
+      "port": 5173,
+      "addr": "127.0.0.1",
+      "pid": 40877,
+      "pids": [
+        40877
+      ],
+      "proc": "node",
+      "cmd": "node /Users/demo/src/atlas-dashboard/node_modules/vite/bin/vite.js --port 5173",
+      "cwd": "/Users/demo/src/atlas-dashboard",
+      "kind": "dev",
+      "container": null,
+      "http": 200,
+      "title": "Atlas \u2014 Feature flags",
+      "uptime": "43:12"
+    },
+    {
+      "port": 8000,
+      "addr": "*",
+      "pid": 39104,
+      "pids": [
+        39104
+      ],
+      "proc": "python3.11",
+      "cmd": "python3.11 -m uvicorn app.main:app --port 8000",
+      "cwd": "/Users/demo/src/ledger-api",
+      "kind": "dev",
+      "container": null,
+      "http": 200,
+      "title": null,
+      "uptime": "03:12:44"
+    },
+    {
+      "port": 54321,
+      "addr": "*",
+      "pid": 33169,
+      "pids": [
+        33169
+      ],
+      "proc": "com.docker.backend",
+      "cmd": "com.docker.backend -watchdog -bind-mount /Users/demo/Library/Containers/com.docker.docker/Data",
+      "cwd": "/Users/demo/Library/Containers/com.docker.docker/Data",
+      "kind": "docker",
+      "container": "acme_kong",
+      "http": 404,
+      "title": null,
+      "uptime": "5-22:08:03"
+    },
+    {
+      "port": 54322,
+      "addr": "*",
+      "pid": 33169,
+      "pids": [
+        33169
+      ],
+      "proc": "com.docker.backend",
+      "cmd": "com.docker.backend -watchdog",
+      "cwd": "/Users/demo/Library/Containers/com.docker.docker/Data",
+      "kind": "docker",
+      "container": "acme_db",
+      "http": null,
+      "title": null,
+      "uptime": "5-22:08:03"
+    },
+    {
+      "port": 54324,
+      "addr": "*",
+      "pid": 33169,
+      "pids": [
+        33169
+      ],
+      "proc": "com.docker.backend",
+      "cmd": "com.docker.backend -watchdog",
+      "cwd": "/Users/demo/Library/Containers/com.docker.docker/Data",
+      "kind": "docker",
+      "container": "acme_mailpit",
+      "http": 200,
+      "title": "Mailpit",
+      "uptime": "5-22:08:03"
+    },
+    {
+      "port": 27017,
+      "addr": "*",
+      "pid": 33169,
+      "pids": [
+        33169
+      ],
+      "proc": "com.docker.backend",
+      "cmd": "com.docker.backend -watchdog",
+      "cwd": "/Users/demo/Library/Containers/com.docker.docker/Data",
+      "kind": "docker",
+      "container": "acme-mongo",
+      "http": null,
+      "title": null,
+      "uptime": "5-22:08:03"
+    },
+    {
+      "port": 5000,
+      "addr": "*",
+      "pid": 1289,
+      "pids": [
+        1289
+      ],
+      "proc": "ControlCenter",
+      "cmd": "/System/Library/CoreServices/ControlCenter.app/Contents/MacOS/ControlCenter",
+      "cwd": "/",
+      "kind": "app",
+      "container": null,
+      "http": 403,
+      "title": null,
+      "uptime": "9-01:02:03"
+    },
+    {
+      "port": 7000,
+      "addr": "*",
+      "pid": 1289,
+      "pids": [
+        1289
+      ],
+      "proc": "ControlCenter",
+      "cmd": "/System/Library/CoreServices/ControlCenter.app/Contents/MacOS/ControlCenter",
+      "cwd": "/",
+      "kind": "app",
+      "container": null,
+      "http": 403,
+      "title": null,
+      "uptime": "9-01:02:03"
+    },
+    {
+      "port": 56202,
+      "addr": "*",
+      "pid": 1003,
+      "pids": [
+        1003
+      ],
+      "proc": "rapportd",
+      "cmd": "/usr/libexec/rapportd",
+      "cwd": "/",
+      "kind": "app",
+      "container": null,
+      "http": null,
+      "title": null,
+      "uptime": "9-01:02:03"
+    },
+    {
+      "port": 57621,
+      "addr": "*",
+      "pid": 3319,
+      "pids": [
+        3319
+      ],
+      "proc": "Spotify",
+      "cmd": "/Applications/Spotify.app/Contents/MacOS/Spotify",
+      "cwd": "/",
+      "kind": "app",
+      "container": null,
+      "http": null,
+      "title": null,
+      "uptime": "4-11:20:00"
+    }
+  ],
+  "containers": [
+    {
+      "name": "acme_kong",
+      "status": "Up 5 days",
+      "ports": "0.0.0.0:54321->8000/tcp"
+    },
+    {
+      "name": "acme_db",
+      "status": "Up 5 days (healthy)",
+      "ports": "0.0.0.0:54322->5432/tcp"
+    },
+    {
+      "name": "acme_mailpit",
+      "status": "Up 5 days",
+      "ports": "0.0.0.0:54324->8025/tcp"
+    },
+    {
+      "name": "acme-mongo",
+      "status": "Up 2 days",
+      "ports": "0.0.0.0:27017->27017/tcp"
+    },
+    {
+      "name": "acme_auth",
+      "status": "Up 5 days",
+      "ports": "9999/tcp"
+    },
+    {
+      "name": "acme_storage",
+      "status": "Up 5 days",
+      "ports": "5000/tcp"
+    },
+    {
+      "name": "acme_realtime",
+      "status": "Up 5 days",
+      "ports": "4000/tcp"
+    },
+    {
+      "name": "acme_pg_meta",
+      "status": "Up 5 days",
+      "ports": "8080/tcp"
+    }
+  ],
+  "expected": [
+    {
+      "name": "acme-store",
+      "port": 3000,
+      "run": "pnpm run dev",
+      "folder": "/Users/demo/src/acme-store",
+      "source": "package.json + .env",
+      "health": null
+    },
+    {
+      "name": "atlas-dashboard",
+      "port": 5173,
+      "run": "pnpm run dev",
+      "folder": "/Users/demo/src/atlas-dashboard",
+      "source": "package.json",
+      "health": null
+    },
+    {
+      "name": "ledger-api",
+      "port": 8000,
+      "run": "make api",
+      "folder": "/Users/demo/src/ledger-api",
+      "source": "Makefile",
+      "health": "/healthz"
+    },
+    {
+      "name": "mailpit",
+      "port": 54324,
+      "run": "docker compose up -d mailpit",
+      "folder": "/Users/demo/src/acme-store",
+      "source": "docker-compose.yml",
+      "health": null
+    },
+    {
+      "name": "worker",
+      "port": 8010,
+      "run": "pnpm run worker",
+      "folder": "/Users/demo/src/ledger-api",
+      "source": "package.json",
+      "health": null
+    },
+    {
+      "name": "search",
+      "port": 9200,
+      "run": "docker compose up -d search",
+      "folder": "/Users/demo/src/acme-store",
+      "source": "docker-compose.yml",
+      "health": null
+    }
+  ],
+  "folders": [
+    "/Users/demo/src/acme-store",
+    "/Users/demo/src/atlas-dashboard",
+    "/Users/demo/src/ledger-api"
+  ],
+  "error": null
+}

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """What is listening on this Mac, and what your repos say should be.
 
-Read by mods/muster/main.js (the Muster window). Prints:
+Read by mods/berth/main.js (the Berth window). Prints:
 
   {"at": <unix>, "listeners": [...], "containers": [...], "expected": [...],
    "folders": [...], "error": null}
@@ -9,7 +9,7 @@ Read by mods/muster/main.js (the Muster window). Prints:
 Each listener: port, addr, pid, pids, proc, cmd, cwd, kind, container, http,
 title, uptime.
 
-Each expected service (from .muster.json, package.json, .env*, Procfile,
+Each expected service (from .berth.json, package.json, .env*, Procfile,
 Makefile, docker-compose* in a repo folder passed with --folder):
 name, port, run, folder, source, health.
 
@@ -136,7 +136,7 @@ def probe(port):
         return None, None
     try:
         conn = http.client.HTTPConnection("127.0.0.1", port, timeout=0.45)
-        conn.request("GET", "/", headers={"User-Agent": "herdr-muster", "Accept": "text/html,*/*"})
+        conn.request("GET", "/", headers={"User-Agent": "herdr-berth", "Accept": "text/html,*/*"})
         resp = conn.getresponse()
         body = b""
         if "html" in (resp.getheader("content-type") or ""):
@@ -285,14 +285,14 @@ def compose(folder):
 def declarations(folder):
     """Every service this repo says should be running."""
     found = []
-    explicit = read(os.path.join(folder, ".muster.json"))
+    explicit = read(os.path.join(folder, ".berth.json"))
     if explicit:
         try:
             for s in json.loads(explicit).get("services") or []:
                 if s.get("port"):
                     found.append({"name": s.get("name") or "service", "port": int(s["port"]),
                                   "run": s.get("run"), "health": s.get("health"),
-                                  "source": ".muster.json"})
+                                  "source": ".berth.json"})
         except Exception:
             pass
     if not found:
@@ -317,7 +317,7 @@ def declarations(folder):
 
 
 MARKERS = (
-    "package.json", ".muster.json", "docker-compose.yml", "docker-compose.yaml",
+    "package.json", ".berth.json", "docker-compose.yml", "docker-compose.yaml",
     "compose.yml", "compose.yaml", "Procfile", "Makefile", "pyproject.toml",
     "requirements.txt", "go.mod", "Cargo.toml", "Gemfile",
 )

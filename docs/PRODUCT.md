@@ -1,10 +1,10 @@
-# Muster — product notes
+# Berth — product notes
 
-A muster roll is the list of who is present and who is missing. That is the whole
+A berth roll is the list of who is present and who is missing. That is the whole
 product: **what the machine is running on which port, and what your repos said should
 be running but isn't.**
 
-Panel name: `muster` · repo: `herdr-muster` · key: `cmd-shift-o`.
+Panel name: `berth` · repo: `herdr-berth` · key: `cmd-shift-o`.
 
 ---
 
@@ -47,7 +47,7 @@ Fetched 2026-11-07 from herdr.dev/gallery?type=mods:
 | **Run / mprocs-style mods** | Declared processes as herdr-core terminals, start/stop/restart/peek | Declares its own list; does not read the machine, so it cannot see what is already up |
 
 So "list the ports" is **solved twice**, and "run things" is solved from the declaration
-side only. Nobody joins the two. That is the gap Muster sits in.
+side only. Nobody joins the two. That is the gap Berth sits in.
 
 ## 4. Positioning
 
@@ -58,10 +58,10 @@ side only. Nobody joins the two. That is the gap Muster sits in.
 Three claims no other mod can make:
 
 1. **Expected vs running.** Reads `package.json`, `.env*`, `docker-compose.yml`,
-   `Procfile`, `Makefile`, `.muster.json` in each space's folder, so a stopped service
+   `Procfile`, `Makefile`, `.berth.json` in each space's folder, so a stopped service
    is a row you can see and start, not an absence you have to notice.
 2. **Uptime and memory.** "up 2h 14m" · "died 4m ago after 3h" · a crash notification
-   with a restart action. A port list is a photograph; Muster is a record.
+   with a restart action. A port list is a photograph; Berth is a record.
 3. **Conflicts explained.** "expected by `salmon-api`, held by ControlCenter (AirPlay
    Receiver)" beats `EADDRINUSE`.
 
@@ -84,7 +84,7 @@ Three claims no other mod can make:
 
 | # | Feature | Effort | Why |
 | --- | --- | --- | --- |
-| 9 | **Drift: declared vs running.** Per space folder, read `package.json` scripts + `PORT=`, `.env*`, `docker-compose.yml` ports, `Procfile`, `Makefile`, `.muster.json`; show "3 expected · 2 up · 1 missing (:8001 `npm run dev`)" | M | The reason to install it over Port Manager |
+| 9 | **Drift: declared vs running.** Per space folder, read `package.json` scripts + `PORT=`, `.env*`, `docker-compose.yml` ports, `Procfile`, `Makefile`, `.berth.json`; show "3 expected · 2 up · 1 missing (:8001 `npm run dev`)" | M | The reason to install it over Port Manager |
 | 10 | **Start / restart a missing service** in a new herdr tab using its own command (`pane.split` + `argv`, or `hc run`) | S | Turns the panel into the switcher |
 | 11 | **Uptime + first-seen + last-seen**: `up 2h14m`, and a dim "died 4m ago" row for a service that was up in this session | S | The forgotten-server case |
 | 12 | **Health, not just a status code**: optional path (`/healthz`), latency ms, consecutive failures, crash `notify()` with a Restart action | M | Catches "process alive, app dead" |
@@ -101,7 +101,7 @@ Three claims no other mod can make:
 | 17 | **Remote spaces**: `exec(..., {on: space.machine})` so a VPS's ports appear in the same list, with the `ssh -L` command generated for you | M | Herdr users run agents on a VPS; Port Manager has tunnels, none has one list |
 | 18 | **Docker depth**: compose project grouping, health state, uptime, "Logs in a pane", restart | M | Containers are half the answer at your setup |
 | 19 | **Focus the terminal that holds it** (⌘-click): PID → cwd → pane via `hc ls`, `pane.focus` | M | Half the time you want the logs, not the page |
-| 20 | **Docked layout variant** (`layouts/muster.json`): panel always visible on the right | S | Some people hate popups |
+| 20 | **Docked layout variant** (`layouts/berth.json`): panel always visible on the right | S | Some people hate popups |
 | 21 | **Linux `ss -ltnp` fallback**; Windows `netstat -ano` with a visible "not supported yet" state | S/M | Gallery reach |
 | 22 | **History strip**: a sparkline of up/down per service for the last hour | L | Nice, not needed |
 
@@ -109,8 +109,8 @@ Three claims no other mod can make:
 
 - Being a process manager for everything (no CPU/RAM charts — Servers owns that).
 - Docker orchestration beyond logs/restart of what already runs.
-- Writing into repos without consent: `.muster.json` is opt-in, created only when the
-  person asks Muster to record a declaration.
+- Writing into repos without consent: `.berth.json` is opt-in, created only when the
+  person asks Berth to record a declaration.
 
 ## 6. Drift detection — the design (v0.2)
 
@@ -118,7 +118,7 @@ Sources, in order of confidence (a later source only fills gaps):
 
 | Source | Read | Declaration |
 | --- | --- | --- |
-| `.muster.json` | `{"services":[{"name":"api","port":8001,"run":"make api","health":"/healthz"}]}` | explicit, wins over everything |
+| `.berth.json` | `{"services":[{"name":"api","port":8001,"run":"make api","health":"/healthz"}]}` | explicit, wins over everything |
 | `docker-compose.yml` | `services.*.ports`, `container_name` | container service + host port |
 | `package.json` | `scripts.*`, `config.port`, `PORT` in `.env*` | runnable script + port if declared |
 | `Procfile` | `web:`, `worker:` | name + command |
@@ -181,7 +181,7 @@ v0.2 adds `first_seen`, `last_ok`, `rtt_ms`, `failures`, and a sibling
 | Risk | Mitigation |
 | --- | --- |
 | `lsof` is ~0.6s; a 5s poll is a visible CPU blip | one spawn per poll, probe HTTP in parallel threads with a 0.45s cap, 15s TTL on probes, slow the poll when the panel is hidden |
-| Drift false positives destroy trust | cwd-scoped matching, `.muster.json` override, quiet presentation |
+| Drift false positives destroy trust | cwd-scoped matching, `.berth.json` override, quiet presentation |
 | Gallery is crowded; "another port list" gets 5 stars | lead the README and the preview with the drift line, not the list |
 | Remote `exec` on an offline machine hangs | `exec` rejects; the row shows "machine offline" instead of blocking the poll |
 | Cross-platform | v0.1 states macOS + Linux(`ss`); Windows is a follow-up, not a silent break |
@@ -189,12 +189,12 @@ v0.2 adds `first_seen`, `last_ok`, `rtt_ms`, `failures`, and a sibling
 
 ## 10. Done when (acceptance for a shareable build)
 
-1. `herdr-app check mods/muster` passes; `status` shows no errors; no `*.error` files.
+1. `herdr-app check mods/berth` passes; `status` shows no errors; no `*.error` files.
 2. A screenshot at 660×640 shows: header with counts, at least one space group, one
    Docker group, one daemon row under All, and a row with a 4xx pill.
 3. Stop a throwaway `python3 -m http.server 8123` from the panel: the row disappears on
    the next poll and the port is free (`lsof -i :8123` empty).
 4. A missing declared service appears as "missing" and Start brings it up in a new tab.
-5. `python3 mods/muster/probe.py | python3 -m json.tool` is valid with no listeners.
+5. `python3 mods/berth/probe.py | python3 -m json.tool` is valid with no listeners.
 6. README states what it runs (`lsof`, `ps`, `docker ps`, `python3`), what it reads, and
    that it talks to nothing but localhost.

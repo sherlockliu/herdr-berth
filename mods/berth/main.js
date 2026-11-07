@@ -1,17 +1,17 @@
-// Muster: every TCP port listening on this Mac, who is holding it, the space
+// Berth: every TCP port listening on this Mac, who is holding it, the space
 // it belongs to, and what your repos declare should be running but isn't.
 // The probing is probe.py (next to this file); this draws what it returns.
 //
-// Open with `mod.open muster` (or the key bound in keys.json -> cmd-shift-o).
+// Open with `mod.open berth` (or the key bound in keys.json -> cmd-shift-o).
 
 import { View, div, svg } from "gpui-kit";
 import { v_flex, h_flex } from "gpui-base";
-import { appHome, closeOverlay, exec, home, notify, props, run, spaces, theme } from "herdr";
+import { appHome, closeOverlay, exec, home, notify, props, readTextFile, run, spaces, theme } from "herdr";
 
 const MONO = "Menlo";
 const ICON = (n) => `icons/${n}.svg`;
 const CHROME = (n) => `mods/workspace-chrome/${n}.svg`;
-const OWN = (n) => `mods/muster/${n}.svg`;
+const OWN = (n) => `mods/berth/${n}.svg`;
 
 // Ports macOS itself holds, named so a conflict reads like a sentence.
 const DAEMONS = {
@@ -81,7 +81,7 @@ const fmtUp = (s) => {
 // no stdin.
 const shq = (s) => `'${String(s).replace(/'/g, `'\\''`)}'`;
 
-export default class Muster extends View {
+export default class Berth extends View {
   init(_props, cx) {
     this.data = null; // probe.py's document
     this.loading = false;
@@ -89,6 +89,7 @@ export default class Muster extends View {
     this.armed = null; // port after one click on stop
     this.note = null; // transient line under the list
     this.starting = {}; // service name -> true while its tab starts
+    this.isDemo = false; // rendering fixtures/demo.json instead of the machine
     this.handle = cx.focus_handle();
     this.refresh(cx);
     cx.timer.every(5000, (cx) => this.refresh(cx));
@@ -115,7 +116,17 @@ export default class Muster extends View {
     for (const f of this.folders()) args.push("--folder", f);
     cx.spawn(async (cx) => {
       try {
-        const r = await exec("python3", [`${appHome()}/mods/muster/probe.py`, ...args]);
+        // Preview harness: `fixtures/demo.json` copied next to the mod draws the
+        // panel from demo data, so a screenshot never shows real projects.
+        const demo = await readTextFile(`${appHome()}/mods/berth/demo.json`).catch(() => null);
+        if (demo) {
+          this.data = JSON.parse(demo);
+          this.isDemo = true;
+          this.error = null;
+          return;
+        }
+        this.isDemo = false;
+        const r = await exec("python3", [`${appHome()}/mods/berth/probe.py`, ...args]);
         if (r.code !== 0 && !r.stdout.trim()) throw new Error((r.stderr || "probe failed").trim());
         const doc = JSON.parse(r.stdout);
         if (doc.error) throw new Error(doc.error);
@@ -130,12 +141,17 @@ export default class Muster extends View {
     });
   }
 
+  // Herdr's spaces, or the ones a demo document brings with it.
+  spaceList() {
+    return this.isDemo ? this.data?.spaces ?? [] : spaces();
+  }
+
   // Which Herdr space a folder belongs to (deepest folder wins).
   spaceFor(path) {
     if (!path) return null;
     const h = home();
     let best = null;
-    for (const s of spaces()) {
+    for (const s of this.spaceList()) {
       if (!s.folder || s.machine) continue;
       // A space rooted at home (or /) would claim every listener there.
       if (s.folder === h || s.folder === "/") continue;
@@ -207,7 +223,7 @@ export default class Muster extends View {
   }
 
   start(e, cx) {
-    if (!e.run || this.starting[e.name]) return;
+    if (this.isDemo || !e.run || this.starting[e.name]) return;
     this.starting[e.name] = true;
     const args = { name: e.name, folder: e.folder, argv: ["/bin/zsh", "-lc", e.run] };
     if (e.space?.id) args.space = e.space.id;
@@ -426,7 +442,7 @@ export default class Muster extends View {
     const hidden = all.filter((e) => e.kind === "app").length;
     const quiet = (this.data?.containers ?? []).filter((c) => !all.some((e) => e.container === c.name));
     return v_flex()
-      .id("muster")
+      .id("berth")
       .track_focus(this.handle)
       .on_key_down((e, cx) => {
         if (e.key === "escape" && props()?.overlay) closeOverlay(props().overlay);
@@ -446,11 +462,12 @@ export default class Muster extends View {
         h_flex()
           .items_center()
           .gap(8)
-          .child(div().text_size(14).font_semibold().child("Muster"))
+          .child(div().text_size(14).font_semibold().child("Berth"))
           .child(div().text_size(11).font_family(MONO).text_color(t.dim).child(`${mine} listening`))
           .when(missing.length > 0, (el) =>
             el.child(div().text_size(11).font_family(MONO).text_color(t.ansi3).child(`· ${missing.length} missing`)),
           )
+          .when(this.isDemo, (el) => el.child(this.pill(t, "demo", t.ansi3)))
           .child(div().flex_1())
           .child(this.chip(t, "Mine", "mine", mine))
           .child(this.chip(t, "All", "all", all.length))

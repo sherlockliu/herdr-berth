@@ -1,4 +1,4 @@
-# Muster
+# Berth
 
 A Herdr mod that is a roll-call for this machine: every TCP port something is listening
 on, which process and project holds it, which Docker container is behind it, whether it
@@ -7,13 +7,13 @@ opens as a floating window (`cmd-shift-o`) with a header of counts and filters, 
 grouped by Herdr space → Docker → macOS daemons, and a footer that names the containers
 with no published port.
 
-![Muster](preview.png)
+![Berth](preview.png)
 
 ## What you see
 
 A 660×640 floating window on the theme's `popover`, 14px padding, one column:
 
-1. **Header** (one row, 22px controls): `Muster` (14px, semibold), then `10 listening`
+1. **Header** (one row, 22px controls): `Berth` (14px, semibold), then `10 listening`
    in 11px mono `dim`, a spacer, then two chips — `Mine 10` / `All 20` (11.5px, 22px
    tall, 6px radius; the active chip has `raised` background and `border`, the other is
    text-only in `muted`) — then a refresh icon (13px) and, only when floating, a close
@@ -36,7 +36,7 @@ A 660×640 floating window on the theme's `popover`, 14px padding, one column:
 
 ## How it behaves
 
-- On first show and every 5s it runs `python3 mods/muster/probe.py` and draws the JSON.
+- On first show and every 5s it runs `python3 mods/berth/probe.py` and draws the JSON.
   Rows are grouped by the space whose folder is the deepest prefix of the listener's
   working directory (a space rooted at `~` or `/` is ignored: it would claim everything);
   Docker listeners group by `Docker`; anything else by `macOS apps and daemons`.
@@ -65,14 +65,14 @@ A 660×640 floating window on the theme's `popover`, 14px padding, one column:
 
 ## Built from
 
-- `mods/muster/main.js` — one `View`; `init` starts the poll; `render` builds header,
+- `mods/berth/main.js` — one `View`; `init` starts the poll; `render` builds header,
   list, footer. Uses `herdr`: `exec`, `appHome`, `home`, `spaces`, `theme`, `props`,
   `closeOverlay`, `notify`; `gpui-kit`/`gpui-base` builders only (`v_flex`, `h_flex`,
   `div`, `svg`, `hover`, `on_click`, `on_mouse_down("right", …)`); no `gpui-shell` APIs.
-- `mods/muster/probe.py` — the data, standalone. Also reads declarations, per entry in
+- `mods/berth/probe.py` — the data, standalone. Also reads declarations, per entry in
   `--folder` plus that folder's immediate children that hold a marker
-  (`package.json`, `.muster.json`, compose, `Procfile`, `Makefile`, `pyproject.toml`,
-  `go.mod`, …), max 40: `.muster.json` first, else `package.json` script + `.env*` port
+  (`package.json`, `.berth.json`, compose, `Procfile`, `Makefile`, `pyproject.toml`,
+  `go.mod`, …), max 40: `.berth.json` first, else `package.json` script + `.env*` port
   + framework default, else `Procfile`, else `Makefile`, plus every compose service's
   published port. Entries: `{name, port, run, folder, source, health}`.
    `lsof -nP -iTCP -sTCP:LISTEN -F pcn`
@@ -81,11 +81,11 @@ A 660×640 floating window on the theme's `popover`, 14px padding, one column:
   names, threads with a 0.45s cap for the HTTP probe (`GET /`, reads 8KB, pulls
   `<title>`). Classifies `kind`: docker (docker proxy or container mapping), dev (working
   directory under `$HOME`, not under `.vscode/.cursor/Library`), app (everything else).
-- `mods/muster/mod.json` — `{"place":"none","title":"Muster","focusable":true,
+- `mods/berth/mod.json` — `{"place":"none","title":"Berth","focusable":true,
   "overlay":{"kind":"window","width":660,"height":640}}`. `place: none` on purpose: it
   must not dock itself into a layout on first sight.
-- `mods/muster/open.svg`, `refresh.svg` — two 24px lucide-style `currentColor` paths.
-- `keys.json` — `{"global":{"cmd-shift-o":"mod.open:muster"}}`.
+- `mods/berth/open.svg`, `refresh.svg` — two 24px lucide-style `currentColor` paths.
+- `keys.json` — `{"global":{"cmd-shift-o":"mod.open:berth"}}`.
 - Program icons come from the app's own `icons/` folder (`vite`, `next`, `python`,
   `docker`, `supabase`, `psql`, `mongosh`, `program`, …); chrome icons from
   `mods/workspace-chrome/` (`x`, `spinner`).
@@ -123,19 +123,25 @@ A 660×640 floating window on the theme's `popover`, 14px padding, one column:
   by one, the infra by the other. Do not make compose an `else` branch.
 - A declared port is not a declared *service*: match by port, then verify the holder's
   cwd is inside the repo, or a project on 3000 claims another project's 3000.
+- **Do not ship `demo.json` inside `mods/<name>/`**: the panel prefers it over probing,
+  so every user would see demo data. Keep it in `fixtures/` and read it from
+  `appHome()/mods/<name>/demo.json` only when it was copied there on purpose. The header
+  must say `demo` while it is on, and the demo document carries its own `spaces` (the
+  panel groups by those instead of `spaces()`), because the fake cwds belong to no real
+  space.
 
 ## Done when
 
-- `herdr-app check ~/.config/herdr-app/mods/muster` prints `check passed`.
-- `herdr-app do mod.open '{"name":"muster"}'`, then `herdr-app status` lists `muster`
+- `herdr-app check ~/.config/herdr-app/mods/berth` prints `check passed`.
+- `herdr-app do mod.open '{"name":"berth"}'`, then `herdr-app status` lists `berth`
   under `overlays` with `"errors": []`; `ls ~/.config/herdr-app/*.error` is empty.
 - A screenshot shows the header counts, at least one space group, the `Docker` group,
   a `tcp` row and a `4xx` pill.
-- `python3 mods/muster/probe.py` prints valid JSON with `"error": null`, and with every
+- `python3 mods/berth/probe.py` prints valid JSON with `"error": null`, and with every
   server stopped still prints `{"listeners": [], …}`.
 - Starting `python3 -m http.server 8123` makes a row appear within 5s with a `200` pill.
-- `python3 mods/muster/probe.py --folder fixtures` returns four `expected` entries
-  (`api` 8123 from `.muster.json`, `demo-web` 8125 from `package.json` + `.env`, `mail`
+- `python3 mods/berth/probe.py --folder fixtures` returns four `expected` entries
+  (`api` 8123 from `.berth.json`, `demo-web` 8125 from `package.json` + `.env`, `mail`
   8126 and `pg` 8127 from compose) and scans three folders.
 - `herdr-app do tab.new '{"name":"x","folder":"<repo>","argv":["/bin/zsh","-lc","python3 -m http.server 8123"]}'`
   makes a listener appear, proving the Start path's command, and closing that tab frees
