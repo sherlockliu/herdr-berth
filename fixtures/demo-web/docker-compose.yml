@@ -1,0 +1,11 @@
+services:
+  mail:
+    image: axllent/mailpit
+    ports:
+      - "8126:8025"
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+  pg:
+    image: postgres:16
+    ports:
+      - "127.0.0.1:8127:5432"
